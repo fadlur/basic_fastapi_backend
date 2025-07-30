@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Form, File, UploadFile
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI()
+
+# Batasan ukuran file yang diupload
+MAX_FILE_SIZE_MB = 10
 
 # --------------------------
 # GET Request
@@ -68,3 +71,67 @@ def update_item(item_id: int, item: Item):
 @app.delete("/items/{item_id}")
 def delete_item(item_id: int):
     return {"method": "DELETE", "item_id": item_id, "status": "deleted"}
+
+# ---------------------------
+# Tambahkan fungsi upload
+# ---------------------------
+
+# Helper untuk cek ukuran file
+async def validate_file_size(file: UploadFile):
+    content = await file.read()
+    size_mb = len(content) / (1024 * 1024)
+    await file.seek(0) # Reset pointer setelah dibaca
+    if size_mb > MAX_FILE_SIZE_MB:
+        raise HTTPException(status_code = 400, detail = f"File size exceeds {MAX_FILE_SIZE_MB} MB limit.")
+    return content
+
+# ---------------------------
+# Fungsi upload excel
+# ---------------------------
+@app.post("/upload/excel")
+async def upload_excel(file: UploadFile = File(...)):
+    # validasi extensi file excel (.xlsx sama .xls)
+    if not file.filename.endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail = "Only Excel files are allowed")
+    
+    content = await validate_file_size(file)
+
+    # validasi content_type
+    if file.content_type not in [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel"
+    ]:
+        raise HTTPException(status_code=400, detail="Invalid Excel MIME type.")
+    
+    return {"filename": file.filename, "type": "excel", "size_kb": f"{round(len(content) / (1024 * 1024), 2)} MB"}
+
+
+# ---------------------------
+# Fungsi upload image
+# ---------------------------
+@app.post("/upload/image")
+async def upload_image(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+        raise HTTPException(status_code=400, detail = "Only image files (jpg, png)")
+    
+    content = await validate_file_size(file)
+
+    if file.content_type not in ["image/png", "image/jpeg"]:
+        raise HTTPException(status_code=400, detail="Invalid image MIME type.")
+    
+    return {"filename": file.filename, "type": "image", "size_kb": f"{round(len(content) / (1024 * 1024), 2)} MB"}
+
+# ---------------------------
+# Fungsi upload video
+# ---------------------------
+@app.post("/upload/video")
+async def upload_video(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith((".mp4", ".avi", ".mov", ".mkv")):
+        raise HTTPException(status_code=400, detail="Only video files are allowed.")
+    
+    content = await validate_file_size(file)
+
+    if not file.content_type.startswith("video/"):
+        raise HTTPException(status_code=400, detail="Invalid video MIME type.")
+    
+    return {"filename": file.filename, "type": "video", "size_mb": f"{round(len(content) / (1024 * 1024), 2)} MB"}
