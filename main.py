@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from routers import upload_excel, upload_image, upload_video
+from database import engine
+from models import file_metadata
 
+file_metadata.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.include_router(upload_excel.router, prefix="/upload", tags=["Excel Upload"])
