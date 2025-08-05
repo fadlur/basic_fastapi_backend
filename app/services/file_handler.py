@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 
 # Folder lokasi penyimpanan
 UPLOAD_DIRS = {
-    "excel": "uploads/excels",
-    "image": "uploads/images",
-    "video": "uploads/videos",
+    "excel": "app/uploads/excels",
+    "image": "app/uploads/images",
+    "video": "app/uploads/videos",
 }
 # Validasi dan simpan file
 async def handle_upload(file: UploadFile, file_type: Literal["excel", "image", "video"], db: Session):

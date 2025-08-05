@@ -1,0 +1,10 @@
+services:
+  web:
+    container_name: fastapi_backend
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app/uploads:/app/uploads
+    env_file:
+      - .env

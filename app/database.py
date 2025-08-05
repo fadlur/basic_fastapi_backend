@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+import os
 
 # Setup untuk sqlite
 # DATABASE_URL = "sqlite:///./uploads.db"
@@ -8,11 +9,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Setup untuk postgresql
-POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="147789"
-POSTGRES_DB="fastapi_dev"
-POSTGRES_HOST="localhost"
-POSTGRES_PORT="5432"
+POSTGRES_USER=os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD=os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB=os.getenv("POSTGRES_DB")
+POSTGRES_HOST=os.getenv("POSTGRES_HOST")
+POSTGRES_PORT=os.getenv("POSTGRES_PORT")
 
 DATABASE_URL=f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
